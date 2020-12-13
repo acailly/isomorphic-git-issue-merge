@@ -33,6 +33,12 @@ async function reproduceBug() {
   await execShellCommand(`git commit -m "Init repo"`, aliceFolder);
   await execShellCommand(`git push origin master`, aliceFolder);
 
+  const bobAndCharlieOid = await execShellCommand(
+    `git rev-parse HEAD`,
+    aliceFolder
+  );
+  console.log("Bob and Charlie Oid:", bobAndCharlieOid);
+
   // Bob clone the repo
   await execShellCommand(`git clone ./remote bob`, localFolder);
   const bobFolder = path.join(localFolder, "bob");
@@ -54,6 +60,9 @@ async function reproduceBug() {
   await execShellCommand(`git commit -m "Add a file"`, aliceFolder);
   await execShellCommand(`git push origin master`, aliceFolder);
 
+  const aliceOid = await execShellCommand(`git rev-parse HEAD`, aliceFolder);
+  console.log("Alice Oid:", aliceOid);
+
   // Bob fetch the remote with native git
   await execShellCommand(`git fetch origin master`, bobFolder);
 
@@ -63,10 +72,15 @@ async function reproduceBug() {
     dir: bobFolder,
     theirs: `remotes/origin/master`,
     author: {
-      // TODO ACY
       name: "Mr. Test",
       email: "mrtest@example.com",
     },
+  });
+  await git.checkout({
+    fs,
+    dir: bobFolder,
+    remote: "origin",
+    ref: "master",
   });
 
   // BUG ! Element added by Alice is marked as deleted
